@@ -17,6 +17,7 @@ import traceback
 import ldap
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.utils.crypto import get_random_string
 
 
 class LDAPBackend:
@@ -54,7 +55,10 @@ class LDAPBackend:
                 user = User.objects.get(username=username)
             except Exception:  # First time login, not in django's database
                 # To prevent login from django db user
-                randomPasswd = User.objects.make_random_password(length=16)
+                # make_random_password() was removed in Django 5.1; use
+                # get_random_string() (this LDAP user authenticates via LDAP,
+                # so the local password is only a random, unused placeholder).
+                randomPasswd = get_random_string(length=16)
                 user = User.objects.create_user(username, userMail, randomPasswd)
                 user.save()
 
